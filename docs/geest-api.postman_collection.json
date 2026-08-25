@@ -1,0 +1,330 @@
+{
+	"info": {
+		"_postman_id": "8f5a2b1c-3d4e-4f5a-9b1c-2d3e4f5a6b7c",
+		"name": "Geest API",
+		"description": "Colección de Postman para Geest API — Gestión de tareas colaborativas, notificaciones resilientes e idempotencia.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "Verifica el estado de salud de la API (Retorna 200 OK con código HEALTH_OK)."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Create User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const res = pm.response.json();",
+									"    const user = res.data || res;",
+									"    if (user.id) {",
+									"        pm.environment.set('userId', user.id);",
+									"        console.log('Saved userId:', user.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Idempotency-Key",
+								"value": "{{$guid}}",
+								"description": "Header de idempotencia (UUID único autogenerado)"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users"
+							]
+						},
+						"description": "Crea un nuevo usuario en el sistema.\n\n**Campos del Body:**\n- `name` (string, obligatorio): Nombre del usuario.\n- `lastName` (string, obligatorio): Apellido del usuario.\n- `email` (string, obligatorio, único): Correo electrónico válido.\n\n**Headers:**\n- `Idempotency-Key` (string, UUID): Clave para garantizar idempotencia en la creación."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Users With Pending Tasks",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users"
+							]
+						},
+						"description": "Obtiene la lista de todos los usuarios junto con sus tareas pendientes asignadas."
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Tasks",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/users/{{userId}}/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{userId}}",
+								"tasks"
+							]
+						},
+						"description": "Obtiene el listado detallado de todas las tareas asignadas a un usuario específico (`idUser`)."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Tasks",
+			"item": [
+				{
+					"name": "Create Task",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const res = pm.response.json();",
+									"    const task = res.data || res;",
+									"    if (task.id) {",
+									"        pm.environment.set('taskId', task.id);",
+									"        console.log('Saved taskId:', task.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Idempotency-Key",
+								"value": "{{$guid}}",
+								"description": "Header de idempotencia (UUID único autogenerado)"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Implementar Idempotencia y Notificaciones\",\n  \"description\": \"Descripción opcional de la tarea con detalles adicionales\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tasks"
+							]
+						},
+						"description": "Crea una nueva tarea colaborativa con estado inicial 'open'.\n\n**Campos del Body:**\n- `title` (string, obligatorio): Título de la tarea.\n- `description` (string, opcional): Descripción o detalles de la tarea.\n\n**Headers:**\n- `Idempotency-Key` (string, UUID): Clave para garantizar idempotencia en la creación."
+					},
+					"response": []
+				},
+				{
+					"name": "List Tasks (All / By Status)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks?status=open",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tasks"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "open",
+									"description": "[Opcional] Filtra por estado: 'open' o 'archived'. Desactivar este query param para listar todas las tareas.",
+									"disabled": false
+								}
+							]
+						},
+						"description": "Lista todas las tareas registradas, permitiendo opcionalmente filtrar por estado (`open` o `archived`)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Task By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tasks",
+								"{{taskId}}"
+							]
+						},
+						"description": "Obtiene la información completa de una tarea por su ID (incluyendo usuarios asignados y estado de completitud de cada uno)."
+					},
+					"response": []
+				},
+				{
+					"name": "Assign Users to Task",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Idempotency-Key",
+								"value": "{{$guid}}",
+								"description": "Header de idempotencia (UUID único autogenerado)"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userIds\": [\n    \"{{userId}}\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks/{{taskId}}/assign",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tasks",
+								"{{taskId}}",
+								"assign"
+							]
+						},
+						"description": "Asigna uno o varios usuarios a una tarea existente.\n\n**Campos del Body:**\n- `userIds` (array de strings, obligatorio): Lista de IDs de usuarios a asignar.\n\n**Headers:**\n- `Idempotency-Key` (string, UUID): Clave para garantizar idempotencia en la asignación."
+					},
+					"response": []
+				},
+				{
+					"name": "Complete Task Part by User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Idempotency-Key",
+								"value": "{{$guid}}",
+								"description": "Header de idempotencia (UUID único autogenerado)"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"{{userId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks/{{taskId}}/complete",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tasks",
+								"{{taskId}}",
+								"complete"
+							]
+						},
+						"description": "Marca la parte de una tarea como completada por un usuario asignado.\n\nCuando **todos los usuarios asignados** completan su parte, la tarea cambia atómicamente a estado `archived` y dispara el despacho de la notificación externa con reintentos.\n\n**Campos del Body:**\n- `userId` (string, obligatorio): ID del usuario asignado que completa su parte.\n\n**Headers:**\n- `Idempotency-Key` (string, UUID): Clave para garantizar idempotencia al completar la tarea."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Task Notifications",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks/{{taskId}}/notifications",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tasks",
+								"{{taskId}}",
+								"notifications"
+							]
+						},
+						"description": "Consulta el historial y los intentos de notificación externa despachados para la tarea (incluyendo código HTTP de respuesta, estado y número de intento)."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5500",
+			"type": "string"
+		}
+	]
+}

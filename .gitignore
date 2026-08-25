@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Production build output
+dist/
+build/
+temp/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+!.env.default
+
+# IDE and OS files
+.DS_Store
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# History and logs
+.history/
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Antigravity / AI assistant metadata
+.agents/
+.gemini/
